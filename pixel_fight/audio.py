@@ -467,3 +467,56 @@ def build(shots, path):
         w.setframerate(SR)
         w.writeframes(pcm.tobytes())
     return total
+
+
+def build_film(film, path):
+    """Soundtrack for the stickman fight: hit-synced SFX + a driving chiptune loop."""
+    global BEAT
+    total = film.duration
+    buf = np.zeros(int(total * SR) + SR * 4)
+    for te, name, g in film.sfx_events:
+        x = sfx(name, dur=None)
+        i = int(te * SR)
+        if i >= len(buf):
+            continue
+        n = min(len(x), len(buf) - i)
+        buf[i:i + n] += x[:n] * g * 0.6
+    sc = Score(total)
+    BEAT = 60.0 / 172
+    r = film.real
+    t_fight, t_wind, t_punch, t_ko = 0.25, r(18.8), r(19.3), r(21.0)
+    roll(sc, 0.0, t_fight, 0.35)
+    battle(sc, t_fight, r(9.84), g=1.0)
+    sc.add(r(9.84), kick(0.6, 120, 30, 3), 0.8)
+    battle(sc, r(9.84), r(15.3), g=1.15)
+    t = r(15.3)
+    while t < r(17.6):
+        sc.note(t, BEAT / 2 * 0.9, hz('E2'), 'square', 0.18, duty=0.25, k=4, lp=3)
+        sc.note(t + BEAT / 4, BEAT / 4, hz('E3'), 'square', 0.07, duty=0.25, k=6, lp=3)
+        t += BEAT / 2
+    roll(sc, r(16.4), r(17.6), 0.35)
+    battle(sc, r(17.6), t_wind, g=1.1, melody=False)
+    pad(sc, t_punch + 0.9, 2.6, [hz('A2'), hz('E3'), hz('A3'), hz('C#4'), hz('E4')], g=0.15, attack=0.05, release=1.2)
+    mel = [('E5', 1), ('A5', 1), ('C#6', 1), ('E6', 2)]
+    tt = t_punch + 0.9
+    for n_, d in mel:
+        sc.note(tt, d * BEAT * 0.9, hz(n_), 'square', 0.07, k=1.0, lp=4)
+        tt += d * BEAT
+    battle(sc, t_ko, total, drums=True, melody=False, arps=True, g=0.6)
+    pad(sc, t_ko, total - t_ko, [hz('A2'), hz('E3'), hz('A3'), hz('C#4')], g=0.12, attack=0.02, release=1.0)
+    music = sc.buf
+    n = min(len(buf), len(music))
+    mix = buf[:n] + music[:n] * 0.8
+    mix = mix[:int(total * SR)]
+    fo = int(0.6 * SR)
+    mix[-fo:] *= np.linspace(1, 0, fo) ** 2
+    mix = np.tanh(mix * 1.1) * 0.92
+    mix /= max(1e-6, np.abs(mix).max()) / 0.95
+    d = int(0.012 * SR)
+    right = np.concatenate([np.zeros(d), mix[:-d]]) * 0.35 + mix * 0.65
+    pcm = (np.clip(np.stack([mix, right], -1), -1, 1) * 32767).astype(np.int16)
+    with wave.open(path, 'wb') as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes(pcm.tobytes())
