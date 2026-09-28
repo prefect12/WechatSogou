@@ -112,12 +112,17 @@ class City:
             band = np.clip(1 - np.abs((YY - (hy - 150)) / 110.0), 0, 1)
             dens = (d - 0.47) * 3.2 * band
             if split is not None:
-                sx, sy, ang, width = split
+                sx, sy, ang, width = split[:4]
                 px, py = cam.w2s(sx, sy, 0.15)
                 nx, ny = -math.sin(ang), math.cos(ang)
                 dist = np.abs((XX - px) * nx + (YY - py) * ny)
                 wob = width * (1 + 0.25 * (vnoise(XX / 17.0, YY / 17.0, 9) - 0.5))
                 dens = dens * np.clip((dist - wob) / 26.0, 0, 1)
+                if len(split) > 4 and split[4] > 1:
+                    ang_ = np.arctan2(YY - py, XX - px)
+                    rr = np.hypot(XX - px, (YY - py) * 2.2)
+                    rad = split[4] * (1 + 0.18 * (vnoise(np.cos(ang_) * 3 + 7, np.sin(ang_) * 3, 4) - 0.5))
+                    dens = dens * np.clip((rr - rad) / 30.0, 0, 1)
             m1 = dens > 0.18
             m2 = dens > 0.45
             fr.img[m1] = pal['cloud']

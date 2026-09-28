@@ -16,6 +16,7 @@ POSES.update({
     'hammer_up': dict(lean=-20, head=-10, sf=175, ef=15, sb=170, eb=20, hf=30, kf=60, hb=-20, kb=50),
     'hammer_down': dict(lean=45, head=-20, sf=75, ef=0, sb=70, eb=5, hf=20, kf=40, hb=-30, kb=50),
     'bored': dict(lean=-2, head=16, sf=4, ef=6, sb=-4, eb=8, hf=4, kf=2, hb=-4, kb=2),
+    'launcher': dict(lean=-34, head=4, sf=-30, ef=40, sb=30, eb=60, hf=150, kf=0, hb=-8, kb=12),
     'stance': dict(lean=10, head=-4, sf=55, ef=85, sb=35, eb=95, hf=26, kf=30, hb=-24, kb=16),
 })
 

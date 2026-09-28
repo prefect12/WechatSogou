@@ -484,24 +484,32 @@ def build_film(film, path):
     sc = Score(total)
     BEAT = 60.0 / 172
     r = film.real
-    t_fight, t_wind, t_punch, t_ko = 0.25, r(18.8), r(19.3), r(21.0)
+    tC, tF, tW, tP, tKO = film.tC, film.tF, film.tW, film.tP, film.tKO
+    t_fight = 0.25
     roll(sc, 0.0, t_fight, 0.35)
     battle(sc, t_fight, r(9.84), g=1.0)
     sc.add(r(9.84), kick(0.6, 120, 30, 3), 0.8)
-    battle(sc, r(9.84), r(15.3), g=1.15)
-    t = r(15.3)
-    while t < r(17.6):
+    battle(sc, r(9.84), r(15.42), g=1.15)
+    # launched to the moon: drums drop out, airy arps; moon: sparse pad
+    battle(sc, r(15.42), r(17.2), drums=False, melody=True, g=0.7)
+    pad(sc, r(17.2), r(18.6) - r(17.2), [hz('E3'), hz('B3'), hz('G4')], g=0.1, attack=0.3, release=0.3)
+    roll(sc, r(18.3), r(18.6), 0.3)
+    battle(sc, r(18.6), r(tC), g=1.15)
+    t = r(tC)
+    while t < r(tF):
         sc.note(t, BEAT / 2 * 0.9, hz('E2'), 'square', 0.18, duty=0.25, k=4, lp=3)
         sc.note(t + BEAT / 4, BEAT / 4, hz('E3'), 'square', 0.07, duty=0.25, k=6, lp=3)
         t += BEAT / 2
-    roll(sc, r(16.4), r(17.6), 0.35)
-    battle(sc, r(17.6), t_wind, g=1.1, melody=False)
-    pad(sc, t_punch + 0.9, 2.6, [hz('A2'), hz('E3'), hz('A3'), hz('C#4'), hz('E4')], g=0.15, attack=0.05, release=1.2)
+    roll(sc, r(tC + 1.1), r(tF), 0.35)
+    battle(sc, r(tF), r(tW), g=1.1, melody=False)
+    t_punch = r(tP)
+    pad(sc, t_punch + 0.8, 3.2, [hz('A2'), hz('E3'), hz('A3'), hz('C#4'), hz('E4')], g=0.15, attack=0.05, release=1.4)
     mel = [('E5', 1), ('A5', 1), ('C#6', 1), ('E6', 2)]
-    tt = t_punch + 0.9
+    tt = t_punch + 0.8
     for n_, d in mel:
         sc.note(tt, d * BEAT * 0.9, hz(n_), 'square', 0.07, k=1.0, lp=4)
         tt += d * BEAT
+    t_ko = r(tKO)
     battle(sc, t_ko, total, drums=True, melody=False, arps=True, g=0.6)
     pad(sc, t_ko, total - t_ko, [hz('A2'), hz('E3'), hz('A3'), hz('C#4')], g=0.12, attack=0.02, release=1.0)
     music = sc.buf

@@ -14,7 +14,7 @@ from engine import *
 from fighters import pose, draw, aura
 from stick import Stick
 from fx import *
-from backgrounds import City, NIGHT, BURST, CHARGE, DAWN, mix_pal
+from backgrounds import City, Space, NIGHT, BURST, CHARGE, DAWN, mix_pal
 from shotbase import smear, ghost, glint
 
 S_GLOW = hexc('#ffd070')
@@ -41,6 +41,10 @@ KINDS = {
     'mega': dict(stop=0.4, star=4.5, n=260, ring=5.0, trauma=1.7, zk=0.25, impact=9, chroma=6, lines=True,
                  sfx=('serious_punch', 1.0)),
     'mark': dict(stop=0.0, n=0),
+    'cloud': dict(stop=0.08, n=40, ring=4.0, trauma=0.9, zk=0.1, impact=2, sfx=('boom', 1.0)),
+    'moonland': dict(stop=0.1, n=30, trauma=0.9, zk=0.08, sfx=('land', 1.0)),
+    'moonjump': dict(stop=0.12, n=60, trauma=1.3, zk=0.12, impact=2, sfx=('jump', 1.0)),
+    'skyblast': dict(stop=0.0, n=0, trauma=1.2, flash=0.5, sfx=('sky_split', 1.0)),
 }
 
 
@@ -126,7 +130,7 @@ class Film:
 
     # ================================================================ choreography
     def cam(self, t, e='io', **kw):
-        d = dict(ws=1.0, wb=1.0, zb=1.3, yo=0.0, k=0.14)
+        d = dict(ws=1.0, wb=1.0, zb=1.3, yo=0.0, k=0.14, lock=0.0)
         d.update(kw)
         self.camk.append((t, d, e))
 
@@ -314,39 +318,76 @@ class Film:
         self.hit(14.34, 'heavy', B, d=(-0.2, 1))
         a.p(14.34, 'knocked', rot=0, e='lin').p(14.56, 'idle', rot=-90).at(14.34, 76, 244).at(14.56, 40, 0, e='in')
         self.hit(14.56, 'slam_big', S, 'hip', pos=(40, 0))
-        b.at(14.4, 100, 280).at(15.2, 150, 200, e='io').p(14.5, 'float')
         self.cam(14.3, zb=1.1, k=0.22)
+        # ---------------- M: launched to the moon and back
+        b.at(14.4, 100, 280).at(14.9, 70, 0, e='in').p(14.5, 'hammer_down').p(14.86, 'land')
+        self.hit(14.9, 'slam', B, 'hip', pos=(70, 0))
+        a.p(14.9, 'idle', rot=-90).p(15.05, 'crouch', rot=0, e='out').p(15.2, 'stance', e='out').face(15.0, 1)
+        b.p(15.1, 'stance').p(15.22, 'crouch').at(15.22, 70, 0).at(15.34, 60, 0, e='out').p(15.34, 'launcher')
+        self.snd(15.3, 'swish')
+        self.hit(15.42, 'heavy', B, pos=(44, -46), d=(0, -1))
+        self.hit(15.42, 'mark', B, cb=lambda f: f.rings.add(40, 0, 200, dur=0.7, squash=0.2, color=(1, 0.6, 0.9),
+                                                              width=8))
+        a.p(15.42, 'knocked', rot=0, e='lin').p(15.7, 'knocked', rot=-540, e='lin').p(15.9, 'fly_up', e='out')
+        a.at(15.42, 40, 0).at(17.2, 40, 4200, e='lin')
+        self.snd(15.45, 'rush_up')
+        self.hit(15.72, 'cloud', S, 'shoulder', pos=(40, -760))
+        b.p(15.5, 'look_up', head=-40)
+        b.hide(15.8, 18.9).at(15.8, 60, 0).at(18.85, 150, 200).p(18.85, 'float')
+        self.cam(15.36, ws=1.0, wb=1.0, k=0.3)
+        self.cam(15.42, ws=1.0, wb=0.0, zb=0.75, lock=1.0, e='step')
+        # moon
+        a.at(17.199, 40, 4200, e='lin').at(17.2, 0, 300, e='lin').at(17.45, 0, 0, e='in')
+        a.p(17.2, 'fly_up').p(17.43, 'land').p(17.8, 'bored', e='out').face(17.2, -1)
+        self.hit(17.45, 'moonland', S, 'hip', pos=(0, 0))
+        self.cam(17.2, ws=1.0, wb=0.0, zb=0.62, lock=0.0, k=0.12, e='step')
+        a.p(18.3, 'crouch').p(18.52, 'crouch', lean=40, kf=130, kb=120)
+        self.hit(18.6, 'moonjump', S, 'hip', pos=(0, 0))
+        a.p(18.6, 'fly', rot=-40).at(18.6, 0, 0).at(18.9, -420, 900, e='in')
+        # meteor return
+        a.at(18.9, -330, 760, e='lin').at(19.3, 40, 0, e='in').face(18.9, 1).p(18.9, 'fly', rot=55)
+        self.snd(18.9, 'meteor')
+        self.hit(19.3, 'slam_big', S, 'hip', pos=(40, 0))
+        a.p(19.3, 'land').p(19.6, 'stance', e='out')
+        self.cam(18.9, ws=1.0, wb=1.0, zb=1.0, k=0.25, e='step')
         # ---------------- G: roaring cannon
-        a.p(15.5, 'idle', rot=-90).p(15.75, 'crouch', rot=0, e='out').p(16.0, 'stance', e='out')
-        a.p(16.6, 'look_up')
-        b.p(15.3, 'cannon', sf=58, sb=62, rot=14, e='out')
-        self.hit(15.3, 'mark', B, cb=lambda f: f.set('charge', True))
-        self.snd(15.3, 'charge_big')
-        self.cam(15.3, zb=0.82, k=0.1)
-        self.hit(17.6, 'beam', B, cb=lambda f: f.fire())
-        b.p(17.6, 'cannon', sf=58, sb=62, rot=14, lean=-14)
-        a.p(17.62, 'block')
-        a.p(18.2, 'crouch').p(18.32, 'fly', rot=-30).at(18.32, 40, 0).at(18.78, 110, 176, e='in')
-        self.snd(18.32, 'dash')
-        self.hit(18.8, 'mark', B, cb=lambda f: f.set('beam_on', False))
-        # ---------------- H: serious punch
-        self.slow.append((18.8, 19.3, 0.28))
-        a.p(18.8, 'serious_wind').face(18.8, 1).at(18.8, 110, 176)
-        b.p(18.84, 'hurt', lean=-12)
-        self.cam(18.7, zb=0.9, k=0.2)
-        self.cam(18.85, zb=1.7, k=0.12)
-        a.p(19.28, 'serious_punch')
-        self.hit(19.3, 'mega', S, cb=lambda f: f.mega())
-        self.cam(19.3, zb=1.7, k=0.12)
-        self.cam(19.5, zb=0.75, k=0.1, yo=-20)
-        b.at(19.3, 150, 200).at(20.6, 236, 236, e='out').p(19.3, 'knocked', rot=0, e='lin').p(20.6, 'knocked',
-                                                                                                  rot=-120, e='lin')
-        a.at(19.7, 110, 176).at(20.6, 110, 0, e='in').p(20.2, 'fly_up').p(20.58, 'land').p(20.95, 'bored', e='out')
-        self.hit(20.6, 'land', S, 'hip', pos=(110, 0))
-        self.cam(20.6, ws=1.0, wb=0.0, zb=0.7, k=0.08, yo=-40)
-        self.cam(23.4, ws=1.0, wb=0.0, zb=0.75, yo=-40)
-        self.hit(21.0, 'mark', S, cb=lambda f: f.set('ko', True))
-        self.end = 23.4
+        tC = self.tC = 19.8
+        tF = self.tF = tC + 2.3
+        tW = self.tW = tF + 1.2
+        tP = self.tP = tW + 0.5
+        tKO = self.tKO = tP + 3.1
+        a.p(tC + 1.0, 'look_up')
+        b.p(tC, 'cannon', sf=58, sb=62, rot=14, e='out')
+        self.hit(tC, 'mark', B, cb=lambda f: f.set('charge', True))
+        self.snd(tC, 'charge_big')
+        self.cam(tC, zb=0.82, k=0.1)
+        self.hit(tF, 'beam', B, cb=lambda f: f.fire())
+        b.p(tF, 'cannon', sf=58, sb=62, rot=14, lean=-14)
+        a.p(tF + 0.02, 'block')
+        a.p(tF + 0.6, 'crouch').p(tF + 0.72, 'fly', rot=-30).at(tF + 0.72, 40, 0).at(tF + 1.18, 110, 176, e='in')
+        self.snd(tF + 0.72, 'dash')
+        self.hit(tW, 'mark', B, cb=lambda f: f.set('beam_on', False))
+        # ---------------- H: serious punch -> clouds blown apart
+        self.slow.append((tW, tP, 0.28))
+        a.p(tW, 'serious_wind').face(tW, 1).at(tW, 110, 176)
+        b.p(tW + 0.04, 'hurt', lean=-12)
+        self.cam(tW - 0.1, zb=0.9, k=0.2)
+        self.cam(tW + 0.05, zb=1.7, k=0.12)
+        a.p(tP - 0.02, 'serious_punch')
+        self.hit(tP, 'mega', S, cb=lambda f: f.mega())
+        self.cam(tP, zb=1.7, k=0.12)
+        self.cam(tP + 0.3, zb=0.9, k=0.1, yo=-40)
+        self.cam(tP + 0.7, ws=1.0, wb=0.0, zb=0.62, k=0.06, yo=-300)
+        self.cam(tP + 2.3, ws=1.0, wb=0.0, zb=0.6, k=0.06, yo=-310)
+        self.cam(tP + 2.7, ws=1.0, wb=0.0, zb=0.72, k=0.07, yo=-40)
+        self.hit(tP + 0.45, 'skyblast', S, pos=(110, -520))
+        b.at(tP, 150, 200).at(tP + 1.3, 236, 236, e='out').p(tP, 'knocked', rot=0, e='lin').p(tP + 1.3, 'knocked',
+                                                                                              rot=-120, e='lin')
+        a.at(tP + 0.4, 110, 176).at(tP + 1.3, 110, 0, e='in').p(tP + 0.9, 'fly_up').p(tP + 1.28, 'land')
+        a.p(tP + 1.65, 'bored', e='out')
+        self.hit(tP + 1.3, 'land', S, 'hip', pos=(110, 0))
+        self.hit(tKO, 'mark', S, cb=lambda f: f.set('ko', True))
+        self.end = tKO + 2.4
 
     # ================================================================ time map
     def build_timemap(self):
@@ -425,6 +466,16 @@ class Film:
         self.b.apply(0)
         self.S.settle(wind=(-120, 0))
         self.i = -1
+        self.last_scene = 'city'
+        self.cloud_hole = None
+        self.blast_i = None
+
+    def scene(self, s):
+        if 15.62 <= s < 17.2:
+            return 'ascent'
+        if 17.2 <= s < 18.9:
+            return 'moon'
+        return 'city'
 
     def set(self, k, v):
         self.flags[k] = v
@@ -499,13 +550,13 @@ class Film:
             self.bolt_until = (self.i + 20, p.copy())
         if k.get('crack'):
             x = self.actor('S' if h.att == 'B' else 'B').x
-            self.decals.append(dict(x=x, r=0, t=self.i, seed=self.i, crack=0.6))
+            self.decals.append(dict(x=x, r=0, t=self.i, seed=self.i, crack=0.6, sc='city'))
             self.parts.burst(rng, x, -1, 10, speed=(40, 140), ang=(190, 350), life=(0.4, 0.8), size=(3, 6),
                              c0=NIGHT['ground'] * 2, c1=NIGHT['ground'], drag=3, mode=DUST)
         if k.get('ground'):
             g = k['ground']
             x = p[0]
-            self.decals.append(dict(x=x, r=18 * g, t=self.i, seed=self.i, crack=g))
+            self.decals.append(dict(x=x, r=18 * g, t=self.i, seed=self.i, crack=g, sc=self.scene(self.frames[self.i])))
             for a0 in (180, 200, 320, 340):
                 self.parts.burst(rng, x, -2, int(10 * g), speed=(80, 300 * g), ang=(a0, a0 + 20), life=(0.6, 1.4),
                                  size=(4, 6 + 6 * g), c0=NIGHT['ground'] * 2.2, c1=NIGHT['ground'], drag=2.2,
@@ -535,6 +586,25 @@ class Film:
             for j in range(5):
                 self.rings.add(p[0] + 20 + j * 45, p[1], 120 + j * 90, dur=0.7 + j * 0.12, color=(1, 1, 1), width=12,
                                squash=1.3, delay=0.25 + j * 0.05)
+        if h.kind == 'cloud':
+            self.cloud_hole = self.i
+            self.parts.burst(rng, p[0], p[1], 70, speed=(120, 420), ang=(0, 360), life=(0.8, 1.6), size=(6, 14),
+                             c0=BURST['cloud_hi'] * 0.9, c1=BURST['cloud'], drag=2.0, mode=DUST, spread=10)
+        if h.kind in ('moonland', 'moonjump'):
+            g = 1.0 if h.kind == 'moonland' else 1.8
+            gray, dark = hexc('#c8c6d2'), hexc('#4a4856')
+            for a0 in (176, 198, 320, 342):
+                self.parts.burst(rng, p[0], -2, int(12 * g), speed=(60, 220 * g), ang=(a0, a0 + 22),
+                                 life=(1.4, 2.6), size=(3, 6 + 4 * g), c0=gray, c1=dark, drag=1.2, grav=10, mode=DUST)
+            self.debris.spawn(rng, p[0], -2, int(18 * g), speed=(60, 260 * g), ang=(200, 340), size=(1.5, 4),
+                              color=hexc('#a8a6b4'), grav=60, life=(2.5, 4.0))
+            self.rings.add(p[0], 0, 150 * g, dur=0.9, squash=0.2, color=(0.9, 0.9, 1), width=4 + 3 * g)
+            self.decals.append(dict(x=p[0], r=16 * g, t=self.i, seed=self.i, crack=0, sc='moon'))
+        if h.kind == 'skyblast':
+            self.blast_i = self.i
+            for j in range(3):
+                self.rings.add(p[0], p[1], 520 + j * 160, dur=1.3 + 0.2 * j, squash=0.32, color=(1, 1, 1),
+                               width=16 - j * 3, delay=j * 0.12)
         if k.get('count') and h.att:
             c = self.combo[h.att]
             c[0] = c[0] + 1 if self.i - c[1] < 70 else 1
@@ -553,10 +623,10 @@ class Film:
         self.b.apply(s)
         S, B = self.S, self.B
         if self.mega_i is not None:
-            prog = ease_in(remap(s, 19.34, 20.55), 1.3) * 1.4
+            prog = ease_in(remap(s, self.tP + 0.04, self.tP + 1.25), 1.3) * 1.4
             c = B.point('shoulder')
             B.dissolve = (c[0] - 12 * B.f, c[1] + 4, prog, 44)
-            if s >= 20.58:
+            if s >= self.tP + 1.28:
                 B.visible = False
         for h in self.trig.get(i, []):
             self.do_hit(h)
@@ -596,7 +666,7 @@ class Film:
                 self.debris.spawn(rng, rng.uniform(-150, 260), -1, 1, speed=(30, 80), ang=(255, 285), size=(1.5, 5),
                                   color=NIGHT['ground'] * 1.7, grav=-90, life=(2.5, 3.5), spin=4)
             if self.every(5):
-                self.cam.add_trauma(0.06 + 0.2 * remap(s, 15.3, 17.6))
+                self.cam.add_trauma(0.06 + 0.2 * remap(s, self.tC, self.tF))
         else:
             self.parts.attract = None
         if self.flags['beam_on'] and not frozen:
@@ -636,14 +706,39 @@ class Film:
                 self.parts.emit(sel, np.stack([rng.uniform(40, 160, n), rng.uniform(-90, 10, n)], -1),
                                 rng.uniform(0.5, 1.3, n), rng.uniform(1, 2, n), (1, 0.9, 0.6), (1, 0.3, 0.1),
                                 drag=1.0, grav=-30, mode=EMBER)
-        if self.mega_i is not None and not frozen and s < 20.2:
+        if self.mega_i is not None and not frozen and s < self.tP + 0.9:
             fp = S.point('fistf')
             self.parts.burst(rng, fp[0] + 10, fp[1], 16, speed=(300, 900), ang=(-35, 35), life=(0.2, 0.6),
                              c0=(1, 1, 1), c1=(0.8, 0.6, 1), drag=1)
-        if s > 21 and self.every(3):
+        if s > self.tKO and self.every(3):
             self.parts.emit(np.array([[self.cam.x + rng.uniform(-220, 220), 2]]),
                             np.array([[rng.uniform(-10, 10), -rng.uniform(10, 30)]]), 3.0, 1.2, (1, 0.95, 0.8),
                             (0.6, 0.5, 0.4), mode=EMBER)
+        scn = self.scene(s)
+        if not frozen and 15.42 <= s < 17.2:
+            J = S.joints()
+            for _ in range(3):
+                p = J['hip'] + np.array([rng.uniform(-8, 8), rng.uniform(-30, 30)])
+                hot = 15.9 < s < 16.8
+                self.parts.emit(p[None], np.array([[rng.uniform(-30, 30), 1500 + rng.uniform(0, 500)]]), 0.2, 1.3,
+                                (1, 0.8, 0.5) if hot else (0.85, 0.85, 1), (0.8, 0.2, 0.1), mode=SPARK)
+        if not frozen and 18.9 <= s < 19.3:
+            J = S.joints()
+            for _ in range(5):
+                p = J['hip'] + rng.uniform(-6, 6, 2)
+                self.parts.emit(p[None], np.array([[-rng.uniform(300, 600), -rng.uniform(300, 600)]]), 0.3, 1.5,
+                                (1, 0.9, 0.5), (1, 0.25, 0.05), drag=2, mode=SPARK)
+        if self.blast_i is not None and not frozen and (i - self.blast_i) * DT < 1.6:
+            cam = self.cam
+            ctr = np.array([cam.x, cam.y - 40 / max(cam.zoom, 0.5)])
+            age = (i - self.blast_i) * DT
+            rad = 40 + 420 * ease_out(age / 1.6, 2)
+            for _ in range(2):
+                a_ = rng.uniform(0, 6.28)
+                pp = ctr + np.array([math.cos(a_), math.sin(a_) * 0.45]) * rad * rng.uniform(0.6, 1.0)
+                self.parts.emit(pp[None], np.array([[math.cos(a_), math.sin(a_) * 0.45]]) * rng.uniform(200, 420),
+                                rng.uniform(0.6, 1.2), rng.uniform(5, 10), DAWN['cloud_hi'] * 0.8, DAWN['cloud'],
+                                drag=1.5, mode=DUST)
         dt_fx = DT * (0.25 if frozen else 1.0)
         self.parts.update(dt_fx, ground=0.0)
         self.debris.update(dt_fx, ground=0.0)
@@ -676,6 +771,12 @@ class Film:
         ty = min(ctr[1] + c['yo'], -30 / max(z, 0.6))
         cam = self.cam
         k = c['k']
+        scn = self.scene(s)
+        if c['lock'] > 0.5 or scn != self.last_scene:
+            cam.x, cam.y, cam.zoom = ctr[0], ty, z
+            if scn == 'ascent':
+                cam.y = ctr[1]
+        self.last_scene = scn
         if not frozen:
             cam.x += (ctr[0] - cam.x) * k
             cam.y += (ty - cam.y) * k
@@ -689,11 +790,11 @@ class Film:
     def palette(self, s):
         if s < 9.84:
             return NIGHT, None, None
-        if s < 15.3:
+        if s < self.tC:
             return mix_pal(NIGHT, BURST, ease_out(remap(s, 9.84, 10.3))), None, None
-        if s < 19.3:
-            return mix_pal(BURST, CHARGE, ease_io(remap(s, 15.3, 17.0))), None, None
-        k = ease_out(remap(s, 19.4, 20.6), 2)
+        if s < self.tP:
+            return mix_pal(BURST, CHARGE, ease_io(remap(s, self.tC, self.tC + 1.7))), None, None
+        k = ease_out(remap(s, self.tP + 0.45, self.tP + 2.6), 1.6)
         return mix_pal(CHARGE, DAWN, k), k, (0, -60)
 
     def draw(self, i):
@@ -707,16 +808,38 @@ class Film:
         split = None
         if split_k is not None:
             zl = 1 + (cam.zoom - 1) * 0.15
-            split = (cam.x * 0.15, (H * 0.28 - H / 2) / zl + cam.y * 0.15, 0.3, 8 + 120 * split_k)
-        City.draw(CITY, fr, t, pal, ship=0.0, split=split, sun=sun,
-                  cloud_speed=4 if s < 9.8 else (14 if s < 19.3 else 40 * (1 - remap(s, 19.3, 21)) + 3))
-        self.draw_bldgs(fr, pal)
+            split = (cam.x * 0.15, (H * 0.3 - H / 2) / zl + cam.y * 0.15, 0.3, 6 + 60 * split_k)
+        scn = self.scene(s)
+        if scn == 'ascent':
+            self.draw_ascent(fr, s, t)
+        elif scn == 'moon':
+            SPACE.stars(fr, t)
+            SPACE.earth(fr, t, -130, -70, 48, par=0.1, light=(0.8, -0.3))
+            SPACE.moon_ground(fr, t)
+        else:
+            if split is not None:
+                split = split + (20 + 170 * split_k,)
+            City.draw(CITY, fr, t, pal, ship=0.0, split=split, sun=sun,
+                      cloud_speed=4 if s < 9.8 else (14 if s < self.tP else 40 * (1 - remap(s, self.tP, self.tP + 2.5)) + 3))
+            if split_k is not None and split_k > 0.05:
+                sx, sy = cam.w2s(0, -60, 0.05)
+                md = MaskDraw()
+                for kk in range(13):
+                    a_ = math.radians(15 + kk * 12.5 + 3 * math.sin(t * 0.6 + kk))
+                    w_ = math.radians(1.0 + (kk % 3))
+                    md.poly([(sx, sy), (sx + math.cos(a_ - w_) * 500, sy + math.sin(a_ - w_) * 500),
+                             (sx + math.cos(a_ + w_) * 500, sy + math.sin(a_ + w_) * 500)])
+                m = md.get() & (BAYER < 0.55)
+                fr.glow[m] += np.array([1, 0.9, 0.6]) * 0.08 * split_k
+            if s >= self.tP - 0.05:
+                self.draw_deck(fr, s, t, split_k or 0.0)
+            self.draw_bldgs(fr, pal)
         self.draw_decals(fr, i)
         drw = np.random.RandomState(i * 7 + 1)
         # teleport streaks
         for act, col in ((self.a, S_GLOW), (self.b, B_GLOW)):
             for t0, t1 in act.hk:
-                if t0 <= s < t1 + 0.06:
+                if t0 <= s < t1 + 0.06 and t1 - t0 < 0.3:
                     p0 = act.pos(t0 - 1e-4)
                     p1 = act.pos(t1)
                     u = remap(s, t0, t1)
@@ -757,6 +880,19 @@ class Film:
             if key == 'S' and self.flags['beam_on']:
                 beam_sil = L
             draw(fr, L)
+        if 18.9 <= s < 19.3:
+            hp = self.S.point('hip')
+            u = np.array([370.0, 760.0])
+            u = u / np.hypot(*u)
+            md = MaskDraw().capsule(cam.pts(hp - u * 140), cam.pts(hp), 0.5, 7 * cam.zoom)
+            m = md.get()
+            fr.img[m] = (1, 0.9, 0.6)
+            fr.glow[m] += np.array([1.0, 0.5, 0.15]) * 1.2
+            hs = cam.w2s(*hp)
+            radial(fr.glow, hs[0], hs[1], 40, (1, 0.6, 0.2), 1.3, steps=5)
+        if scn == 'ascent' or (15.42 <= s < 17.2):
+            rv = np.random.RandomState(i)
+            fr.ui.append(lambda o: vlines(o, rv, 34, color=(1, 1, 1), alpha=0.35, lens=(40, 160)))
         self.debris.draw(fr)
         self.rings.draw(fr)
         self.parts.draw(fr)
@@ -764,27 +900,27 @@ class Film:
         # charge orb / beam
         if self.flags['charge'] or self.flags['beam_on']:
             o, d = self.orb_geom()
-            r = 3 + 20 * ease_io(remap(s, 15.3, 17.4)) if self.flags['charge'] else 12
+            r = 3 + 20 * ease_io(remap(s, self.tC, self.tF - 0.2)) if self.flags['charge'] else 12
             orb(fr, o[0], o[1], r * (1 + 0.05 * math.sin(t * 40)), t, c_out=(0.65, 0.25, 1.0), c_mid=(0.45, 0.75, 1.0),
-                inten=0.9 + 0.4 * remap(s, 16.5, 17.5))
+                inten=0.9 + 0.4 * remap(s, self.tF - 1.1, self.tF - 0.1))
             if self.every(2) and r > 4:
-                for _ in range(1 + int(2 * remap(s, 16, 17.5))):
+                for _ in range(1 + int(2 * remap(s, self.tF - 1.6, self.tF - 0.1))):
                     aa = drw.uniform(0, 6.28)
                     p1 = o + np.array([math.cos(aa), math.sin(aa)]) * r * drw.uniform(1.8, 4.0)
                     lightning(fr, drw, o, p1, color=(0.6, 0.6, 1.0), inten=1.3, branches=1, depth=4)
             if self.flags['beam_on']:
                 v = self.beam_tgt - o
                 ang = math.degrees(math.atan2(v[1], v[0]))
-                ln = (np.hypot(*v) + 300) * ease_out(remap(s, 17.6, 17.7), 2)
+                ln = (np.hypot(*v) + 300) * ease_out(remap(s, self.tF, self.tF + 0.1), 2)
                 beam(fr, o[0], o[1], ang, ln, 20, t, inten=1.1)
         # serious punch shock cone
-        if self.mega_i is not None and s < 20.3:
+        if self.mega_i is not None and s < self.tP + 1.0:
             fp = self.S.point('fistf')
-            p = ease_out(remap(s, 19.3, 20.2), 2)
+            p = ease_out(remap(s, self.tP, self.tP + 0.9), 2)
             spread = math.radians(8 + 30 * p)
             Lc = 60 + 900 * p
             apex = np.array([fp[0] + 2, fp[1]])
-            fade = 1 - remap(s, 20.0, 20.3)
+            fade = 1 - remap(s, self.tP + 0.7, self.tP + 1.0)
             for wk, col, gi in ((1.0, (0.7, 0.6, 1.0), 0.8), (0.55, (1, 1, 1), 1.5)):
                 pts = [apex, apex + np.array([math.cos(spread * wk), -math.sin(spread * wk)]) * Lc,
                        apex + np.array([Lc * 1.05, 0]),
@@ -792,9 +928,9 @@ class Film:
                 m = MaskDraw().poly(cam.pts(np.array(pts))).get()
                 fr.img[m] = fr.img[m] * (1 - fade) + np.asarray(col) * fade
                 fr.glow[m] += np.asarray(col) * gi * fade
-        if 18.8 <= s < 19.3:
+        if self.tW <= s < self.tP:
             fp = cam.w2s(*self.S.point('fistf'))
-            p = remap(s, 18.8, 19.3)
+            p = remap(s, self.tW, self.tP)
             radial(fr.glow, fp[0], fp[1], 40 * cam.zoom, (1, 0.3, 0.2), 0.5 + 1.2 * p, steps=5)
             if self.every(2):
                 c = self.S.point('fistf')
@@ -835,7 +971,7 @@ class Film:
             lp = cam.w2s(*self.lines[1])
             rl = np.random.RandomState(i // 2)
             fr.ui.append(lambda o: speed_lines(o, rl, lp[0], lp[1], n=60, color=(1, 1, 1), alpha=0.55, r_in=(0.25, 0.6)))
-        if 18.8 <= s < 19.3:
+        if self.tW <= s < self.tP:
             lp = cam.w2s(*self.S.point('fistf'))
             rl = np.random.RandomState(i // 2)
             fr.ui.append(lambda o: speed_lines(o, rl, lp[0], lp[1], n=70, color=(1, 1, 1), alpha=0.45,
@@ -843,6 +979,76 @@ class Film:
         self.ui(fr, i, s, t)
         cam.zoom = base_zoom
         return fr.finish(bloom_k=0.85, vignette=0.4)
+
+    def draw_deck(self, fr, s, t, k):
+        """Overcast cloud deck that the serious punch blows a giant hole through."""
+        cam = fr.cam
+        sx, sy = cam.w2s(0, -60, 0.05)
+        zl = 1 + (cam.zoom - 1) * 0.15
+        wx = (XX - W / 2) / zl + cam.x * 0.15 + t * 6
+        wy = (YY - H / 2) / zl + cam.y * 0.15
+        hz = cam.w2s(0, 0, 0.25)[1]
+        fade = np.clip((hz - 70 - YY) / 60.0, 0, 1)
+        d = fbm(wx / 60.0, wy / 20.0, 4, seed=13)
+        dens = (d - 0.3) * 3.0 * fade
+        ang = np.arctan2(YY - sy, XX - sx)
+        wob = 1 + 0.22 * (vnoise(np.cos(ang) * 3 + 2, np.sin(ang) * 3 + 5, 21) - 0.5)
+        rr = np.hypot(XX - sx, (YY - sy) * 1.7)
+        R = (4 + 150 * k) * wob
+        dens = dens * np.clip((rr - R) / 18.0, 0, 1)
+        m1 = dens > 0.12
+        m2 = dens > 0.45
+        base = CHARGE['cloud'] * (1 - k) + DAWN['cloud'] * k
+        hi = CHARGE['cloud_hi'] * (1 - k) + DAWN['cloud_hi'] * k
+        fr.img[m1] = base
+        fr.img[m2] = base * 0.6 + hi * 0.4
+        rim = m1 & (rr < R + 11)
+        fr.img[rim] = hi
+        fr.glow[rim] += hi * 0.25 * k
+        edge = m1 & ~shift(m1, 0, -1)
+        fr.img[edge] = hi * 0.9
+
+    def draw_ascent(self, fr, s, t):
+        cam = fr.cam
+        alt = -cam.y
+        k = clamp01((alt - 300) / 3500)
+        top = BURST['mid'] * (1 - k) ** 2
+        low = BURST['low'] * (1 - k) ** 2 + hexc('#0a1440') * k * (1 - k) * 2
+        g = np.clip(YY / H, 0, 1)
+        col = top + (low - top) * g[..., None]
+        fr.img[:] = np.floor(col * 16 + BAYER[..., None] * 0.999) / 16
+        if k > 0.25:
+            SPACE.stars(fr, t, bright=remap(k, 0.25, 0.6))
+        wy = (YY - H / 2) / cam.zoom + cam.y
+        wx = (XX - W / 2) / cam.zoom + cam.x
+        band = np.clip(1 - np.abs(wy + 760) / 110.0, 0, 1)
+        if band.max() > 0:
+            d = fbm(wx / 45.0, wy / 14.0, 4, seed=5)
+            dens = (d - 0.35) * 3.2 * band
+            if self.cloud_hole is not None:
+                age = (self.i - self.cloud_hole) * DT
+                hr = 18 + 120 * ease_out(min(1, age / 0.8), 2)
+                dist = np.hypot(wx - 40, (wy + 760) * 1.6)
+                dens = dens * np.clip((dist - hr) / 10.0, 0, 1)
+            fr.img[dens > 0.12] = BURST['cloud']
+            fr.img[dens > 0.4] = BURST['cloud_hi'] * 0.85
+        if k > 0.45:
+            rise = ease_out(remap(k, 0.45, 1.0)) * 80
+            Rr = 900.0
+            d2 = np.hypot(XX - W / 2, YY - (H + Rr - rise))
+            m = d2 < Rr
+            fr.img[m] = hexc('#1d4fb3') * (0.5 + 0.5 * np.clip((Rr - d2[m]) / 60.0, 0, 1))[:, None]
+            fr.glow[(d2 >= Rr) & (d2 < Rr + 6)] += hexc('#4aa0ff') * 0.6
+        if s > 16.75:
+            q = ease_in(remap(s, 16.75, 17.2))
+            Rm = 80 + 300 * q
+            cy = -Rm + 30 + q * 170
+            m = np.hypot(XX - W / 2, YY - cy) < Rm
+            fr.img[m] = hexc('#9a98a6') * (0.7 + 0.3 * vnoise(XX[m] / 9.0, YY[m] / 9.0, 3))[:, None]
+        heat = math.sin(math.pi * remap(s, 15.8, 16.8))
+        if heat > 0.05:
+            hc = cam.w2s(*self.S.point('head'))
+            radial(fr.glow, hc[0], hc[1] - 6, 46 * cam.zoom / 1.6, (1, 0.45, 0.15), 1.0 * heat, steps=5)
 
     def draw_bldgs(self, fr, pal):
         cam = fr.cam
@@ -877,7 +1083,10 @@ class Film:
 
     def draw_decals(self, fr, i):
         cam = fr.cam
+        sc = self.scene(self.frames[i])
         for d in self.decals:
+            if d.get('sc', 'city') != sc:
+                continue
             age = (i - d['t']) * DT
             if d['r'] > 0:
                 c = cam.w2s(d['x'], 0)
@@ -916,17 +1125,18 @@ class Film:
                               size=int(22 * pop), thick=2, shadow=2, alpha=a)
                     blit_text(o, 'HITS', x + 22, 38, color=col, outline=(0, 0, 0), path=FONT_BOLD, size=10,
                               spacing=1, alpha=a)
-            if s >= 21.0:
-                p = ease_out(remap(s, 21.0, 21.15), 3)
+            if s >= self.tKO:
+                p = ease_out(remap(s, self.tKO, self.tKO + 0.15), 3)
                 size = int(round(130 - 76 * p))
                 blit_text(o, 'K.O.', W / 2, H / 2 - 36, color=(1, 1, 0.7), color2=(1, 0.25, 0.1),
                           outline=(0.12, 0, 0.02), path=FONT_BOLD, size=size, thick=2, shadow=3,
                           glowc=(1, 0.5, 0.1))
-                fl = 1 - remap(s, 21.0, 21.2)
+                fl = 1 - remap(s, self.tKO, self.tKO + 0.2)
                 o[:] = o * (1 - fl * 0.7) + fl * 0.7
-            fo = remap(s, 22.8, 23.4)
+            fo = remap(s, self.end - 0.6, self.end)
             o[:] = o * (1 - fo)
         fr.ui.append(f)
 
 
 CITY = City(3)
+SPACE = Space(9)
