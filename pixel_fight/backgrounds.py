@@ -87,7 +87,8 @@ class City:
                     rs.uniform(0.3, 0.8)) for i in range(k)]
             self.fg.append((x, pts))
 
-    def draw(self, fr, t, pal=NIGHT, ship=0.0, clouds=True, split=None, fg=False, sun=None, cloud_speed=3.0):
+    def draw(self, fr, t, pal=NIGHT, ship=0.0, clouds=True, split=None, fg=False, sun=None, cloud_speed=3.0,
+             ruin=None):
         cam = fr.cam
         hy = cam.w2s(0, 0, 0.25)[1]
         # ---------------- sky
@@ -171,10 +172,14 @@ class City:
                 bx0, by0 = cam.w2s(b['x'], 0, par)
                 if bx0 > W + 10 or bx0 + b['w'] * zl < -10:
                     continue
-                pts = [(bx0 + x * zl, by0 + y * zl) for x, y in b['poly']]
+                ys = 1.0
+                if ruin is not None and ruin[0] <= b['x'] <= ruin[1]:
+                    ys = 1 - 0.62 * ruin[2] * (0.6 + 0.4 * ((b['x'] * 7.3) % 1))
+                pts = [(bx0 + x * zl, by0 + y * zl * ys + (abs(math.sin(x * 1.7 + b['x'])) * 6 * zl * ruin[2]
+                        if (ys < 1 and y < -1) else 0)) for x, y in b['poly']]
                 md.poly(pts)
                 if zl * (0.8 if par < 0.2 else 1) > 0.55:
-                    for wx, wy, lv in b['wins']:
+                    for wx, wy, lv in (b['wins'] if ys == 1.0 else []):
                         if (lv + 0.07 * math.sin(t * 2 + wx)) > 0.72:
                             x0, y0 = bx0 + wx * zl, by0 + wy * zl
                             wmd.d.rectangle([x0, y0, x0 + max(0, zl - 1), y0 + max(0, zl * 1.4 - 1)], fill=1)

@@ -505,3 +505,19 @@ def banner(out, t, title, sub, color=(1, 0.3, 0.8), side=1, y=62):
               outline=(0.05, 0, 0.08), path=FONT_CJK, size=26, thick=2, glowc=color, spacing=2)
     blit_text(out, sub, W / 2 + off + 30 * side, y + 12, color=color, outline=(0, 0, 0),
               path=FONT_BOLD, size=10, spacing=2)
+
+
+def roll_img(out, deg):
+    """Dutch-angle: rotate + scale-to-cover with nearest sampling (keeps the pixel grid chunky)."""
+    import math as _m
+    from PIL import Image as _I
+    a = _m.radians(deg)
+    c, s = _m.cos(a), _m.sin(a)
+    sc = abs(c) + (W / H) * abs(s)
+    cx, cy = W / 2, H / 2
+    coef = (c / sc, -s / sc, cx - (c * cx - s * cy) / sc, s / sc, c / sc, cy - (s * cx + c * cy) / sc)
+    res = np.empty_like(out)
+    for ch in range(3):
+        im = _I.fromarray(np.ascontiguousarray(out[..., ch]).astype(np.float32), mode='F')
+        res[..., ch] = np.asarray(im.transform((W, H), _I.AFFINE, coef, resample=_I.NEAREST))
+    return res
