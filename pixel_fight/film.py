@@ -16,6 +16,7 @@ from stick import Stick
 from fx import *
 from backgrounds import City, Space, NIGHT, BURST, CHARGE, DAWN, mix_pal
 from shotbase import smear, ghost, glint
+import three
 
 S_GLOW = hexc('#ffd070')
 B_GLOW = hexc('#ff4ad8')
@@ -301,7 +302,7 @@ class Film:
         a.p(11.41, 'punch')
         self.hit(11.44, 'clash', S, pos=(22, -44))
         self.hit(11.45, 'shatter', S, pos=(22, -44), cb=lambda f: f.shatter(22, -44))
-        self.far(11.45, 11.9, 22, -110, 0.42, roll=0, back=dict(zb=1.3, k=0.3))
+        self.far(11.45, 12.12, 22, -110, 0.42, roll=0, back=dict(zb=1.3, k=0.3))
         a.at(11.44, -6).at(11.7, -52, e='out').p(11.46, 'stance')
         b.at(11.44, 52).at(11.7, 92, e='out').p(11.46, 'stance')
         # ---------------- F: air fight
@@ -359,7 +360,7 @@ class Film:
         self.snd(15.45, 'rush_up')
         self.hit(15.72, 'cloud', S, 'shoulder', pos=(40, -760))
         b.p(15.5, 'look_up', head=-40)
-        b.hide(15.8, 19.3).at(15.8, 60, 0).at(19.25, 150, 200).p(19.25, 'float')
+        b.hide(15.8, 19.7).at(15.8, 60, 0).at(19.65, 150, 200).p(19.65, 'float')
         self.cam(15.36, ws=1.0, wb=1.0, k=0.3)
         self.cam(15.42, ws=1.0, wb=0.0, zb=0.75, lock=1.0, e='step')
         # moon
@@ -371,24 +372,24 @@ class Film:
         self.hit(18.6, 'moonjump', S, 'hip', pos=(0, 0))
         a.p(18.6, 'fly', rot=-40).at(18.6, 0, 0).at(18.62, -40, 90, e='in')
         # moon cracks: view from space
-        self.hit(18.64, 'mooncrack', S, pos=(0, 0), cb=lambda f: f.moon_crack())
+        self.hit(18.64, 'mooncrack', S, pos=(0, 0))
         self.snd(18.64, 'crash')
         self.snd(18.66, 'rumble')
         self.cam(18.62, cut=True, tw=1.0, tx=0, ty=0, tz=1.0, roll=0, lock=1.0)
         # meteor return
-        a.hide(18.62, 19.3)
-        a.at(19.3, -330, 760, e='lin').at(19.7, 40, 0, e='in').face(19.3, 1).p(19.3, 'fly', rot=55)
-        self.snd(19.3, 'meteor')
-        self.hit(19.7, 'slam_big', S, 'hip', pos=(40, 0))
-        a.p(19.7, 'land').p(20.0, 'stance', e='out')
-        self.cam(19.3, cut=True, ws=1.0, wb=1.0, zb=1.0, k=0.25, tw=0.0, lock=0.0, roll=6)
-        self.cam(19.75, ws=1.0, wb=1.0, zb=1.0, k=0.25, roll=0)
+        a.hide(18.62, 19.7)
+        a.at(19.7, -330, 760, e='lin').at(20.1, 40, 0, e='in').face(19.7, 1).p(19.7, 'fly', rot=55)
+        self.snd(19.7, 'meteor')
+        self.hit(20.1, 'slam_big', S, 'hip', pos=(40, 0))
+        a.p(20.1, 'land').p(20.4, 'stance', e='out')
+        self.cam(19.7, cut=True, ws=1.0, wb=1.0, zb=1.0, k=0.25, tw=0.0, lock=0.0, roll=6)
+        self.cam(20.15, ws=1.0, wb=1.0, zb=1.0, k=0.25, roll=0)
         # ---------------- G: roaring cannon
-        tC = self.tC = 20.2
+        tC = self.tC = 20.6
         tF = self.tF = tC + 2.3
         tW = self.tW = tF + 1.2
         tP = self.tP = tW + 0.5
-        tKO = self.tKO = tP + 3.3
+        tKO = self.tKO = tP + 3.7
         a.p(tC + 1.0, 'look_up')
         b.p(tC, 'cannon', sf=58, sb=62, rot=14, e='out')
         self.hit(tC, 'mark', B, cb=lambda f: f.set('charge', True))
@@ -413,7 +414,7 @@ class Film:
         self.cam(tP + 0.7, ws=1.0, wb=0.0, zb=0.62, k=0.06, yo=-300)
         self.cam(tP + 1.4, ws=1.0, wb=0.0, zb=0.6, k=0.06, yo=-310)
         self.cam(tP + 1.45, cut=True, tw=1.0, tx=0, ty=0, tz=1.0, lock=1.0)
-        self.cam(tP + 2.6, cut=True, ws=1.0, wb=0.0, zb=0.72, k=0.07, yo=-40, tw=0.0, lock=0.0)
+        self.cam(tP + 3.0, cut=True, ws=1.0, wb=0.0, zb=0.72, k=0.07, yo=-40, tw=0.0, lock=0.0)
         self.hit(tP + 0.45, 'skyblast', S, pos=(110, -520))
         b.at(tP, 150, 200).at(tP + 1.3, 236, 236, e='out').p(tP, 'knocked', rot=0, e='lin').p(tP + 1.3, 'knocked',
                                                                                               rot=-120, e='lin')
@@ -506,15 +507,18 @@ class Film:
         self.ruin_i = None
         self.crack_i = None
         self.prev_scene = 'city'
+        self.scene_i0 = 0
 
     def scene(self, s):
         if 15.62 <= s < 17.2:
             return 'ascent'
         if 17.2 <= s < 18.62:
             return 'moon'
-        if 18.62 <= s < 19.3:
+        if 11.45 <= s < 12.12:
+            return 'city3d'
+        if 18.62 <= s < 19.7:
             return 'mooncrack'
-        if self.tP + 1.45 <= s < self.tP + 2.6:
+        if self.tP + 1.45 <= s < self.tP + 3.0:
             return 'orbit'
         return 'city'
 
@@ -540,20 +544,6 @@ class Film:
                          c0=NIGHT['ground'] * 2.4, c1=NIGHT['ground'], drag=1.6, mode=DUST, spread=30)
         self.rings.add(x, y, 520, dur=1.0, color=(1, 0.85, 1), width=18, squash=0.8)
         self.rings.add(x, 0, 700, dur=1.2, squash=0.16, color=(1, 0.7, 0.9), width=12)
-
-    def moon_crack(self):
-        self.crack_i = self.i
-        rng = self.rng
-        px, py = self.moon_pt()
-        self.parts.burst(rng, px, py, 120, speed=(40, 260), ang=(120, 320), life=(0.8, 2.0), size=(1, 2.5),
-                         c0=(1, 0.95, 0.8), c1=(0.6, 0.5, 0.4), drag=0.3, mode=DOT)
-        self.debris.spawn(rng, px, py, 60, speed=(30, 200), ang=(130, 310), size=(1, 3.5), color=hexc('#a8a6b4'),
-                          grav=0, life=(1.5, 2.5), spin=6)
-        self.rings.add(px, py, 90, dur=0.7, squash=0.7, color=(1, 0.95, 0.8), width=6)
-
-    def moon_pt(self):
-        cx, cy, R = self.MOON
-        return cx - R * 0.5 - W / 2, cy - R * 0.62 - H / 2
 
     def power_up(self):
         self.B.burst = True
@@ -710,6 +700,7 @@ class Film:
             self.rings.items = []
             self.stars.items = []
             self.prev_scene = scn0
+            self.scene_i0 = i
         for h in self.trig.get(i, []):
             self.do_hit(h)
         wind = (-90, 0) if not self.flags['beam_on'] else (-600, 300)
@@ -900,10 +891,16 @@ class Film:
             zl = 1 + (cam.zoom - 1) * 0.15
             split = (cam.x * 0.15, (H * 0.3 - H / 2) / zl + cam.y * 0.15, 0.3, 6 + 60 * split_k)
         scn = self.scene(s)
-        if scn == 'mooncrack':
-            self.draw_mooncrack(fr, s, t)
-        elif scn == 'orbit':
-            self.draw_orbit(fr, s, t)
+        if scn in ('city3d', 'mooncrack', 'orbit'):
+            span = {'city3d': (11.45, 12.12), 'mooncrack': (18.62, 19.7), 'orbit': (self.tP + 1.45, self.tP + 3.0)}[scn]
+            dur = max(0.2, self.real(span[1]) - self.real(span[0]))
+            u = clamp01((i - self.scene_i0) * DT / dur)
+            if scn == 'city3d':
+                three.city_blast(fr, u, t, BURST)
+            elif scn == 'mooncrack':
+                three.moon_impact(fr, u, t)
+            else:
+                three.earth_cut(fr, u, t)
         elif scn == 'ascent':
             self.draw_ascent(fr, s, t)
         elif scn == 'moon':
@@ -931,7 +928,8 @@ class Film:
             if s >= self.tP - 0.05:
                 self.draw_deck(fr, s, t, split_k or 0.0)
             self.draw_bldgs(fr, pal)
-        self.draw_decals(fr, i)
+        if scn not in ('city3d', 'mooncrack', 'orbit'):
+            self.draw_decals(fr, i)
         drw = np.random.RandomState(i * 7 + 1)
         # teleport streaks
         for act, col in ((self.a, S_GLOW), (self.b, B_GLOW)):
@@ -952,7 +950,7 @@ class Film:
         beam_sil = None
         for key in order:
             st = self.actor(key)
-            if not st.visible or scn in ('mooncrack', 'orbit'):
+            if not st.visible or scn in ('city3d', 'mooncrack', 'orbit'):
                 continue
             hist = self.hist[key]
             if len(hist) > 3:
@@ -990,10 +988,11 @@ class Film:
         if scn == 'ascent' or (15.42 <= s < 17.2):
             rv = np.random.RandomState(i)
             fr.ui.append(lambda o: vlines(o, rv, 34, color=(1, 1, 1), alpha=0.35, lens=(40, 160)))
-        self.debris.draw(fr)
-        self.rings.draw(fr)
-        self.parts.draw(fr)
-        self.stars.draw(fr)
+        if scn not in ('city3d', 'mooncrack', 'orbit'):
+            self.debris.draw(fr)
+            self.rings.draw(fr)
+            self.parts.draw(fr)
+            self.stars.draw(fr)
         # charge orb / beam
         if self.flags['charge'] or self.flags['beam_on']:
             o, d = self.orb_geom()
@@ -1080,112 +1079,6 @@ class Film:
         cam.zoom = base_zoom
         return fr.finish(bloom_k=0.85, vignette=0.4)
 
-    MOON = (W * 0.6, H * 0.56, 92)
-
-    def draw_mooncrack(self, fr, s, t):
-        """Wide space shot: the moon cracks open where Saitama jumped off it."""
-        u = remap(s, 18.62, 19.3)
-        cam = fr.cam
-        fr.img[:] = hexc('#03030a')
-        SPACE.stars(fr, t)
-        SPACE.earth(fr, t, -150, -45, 30, par=1.0, light=(0.8, -0.3))
-        cx, cy, R = self.MOON
-        cx, cy = cx + cam.ox, cy + cam.oy
-        dx, dy = (XX - cx) / R, (YY - cy) / R
-        d2 = dx * dx + dy * dy
-        m = d2 < 1
-        z = np.sqrt(np.clip(1 - d2, 0, 1))
-        lam = np.clip(-(dx * -0.7 + dy * -0.4) + z * 0.5, 0, 1)
-        lam = np.floor(lam * 6 + BAYER * 0.99) / 6
-        tex = 0.75 + 0.25 * fbm(dx * 3 + 4, dy * 3, 3, 41)
-        col = hexc('#b8b6c4') * (0.15 + 0.9 * lam * tex)[..., None]
-        fr.img[m] = col[m]
-        for k_ in range(14):
-            rs = np.random.RandomState(k_ + 70)
-            a_, r_ = rs.uniform(0, 6.28), rs.uniform(0, 0.85)
-            ex, ey = cx + math.cos(a_) * r_ * R, cy + math.sin(a_) * r_ * R
-            er = R * rs.uniform(0.05, 0.16)
-            cm = MaskDraw().ellipse(ex, ey, er, er * 0.85).get() & m
-            fr.img[cm] = fr.img[cm] * 0.7
-        # glowing fissures racing across the surface
-        ox, oy = cx - R * 0.5, cy - R * 0.62
-        grow = ease_out(remap(u, 0.0, 0.7), 2)
-        md = MaskDraw()
-        rs = np.random.RandomState(5)
-        for k_ in range(11):
-            a_ = rs.uniform(-0.3, 1.9)
-            p = np.array([ox, oy])
-            pts = [p.copy()]
-            L = R * rs.uniform(0.6, 1.7) * grow
-            for j in range(7):
-                a_ += rs.uniform(-0.5, 0.5)
-                p = p + np.array([math.cos(a_), math.sin(a_)]) * L / 7
-                pts.append(p.copy())
-                if rs.rand() < 0.35:
-                    b_ = a_ + rs.uniform(-1.2, 1.2)
-                    md.line([p, p + np.array([math.cos(b_), math.sin(b_)]) * L / 5], 1)
-            md.line(pts, 2 if k_ < 4 else 1)
-        cm = md.get() & m
-        fr.img[cm] = (1, 0.95, 0.7)
-        fr.glow[cm] += np.array([1.0, 0.55, 0.2]) * 1.4 * (1 - 0.4 * u)
-        fr.glow[dilate(cm, 1) & m & ~cm] += np.array([1.0, 0.4, 0.1]) * 0.5
-        radial(fr.glow, ox, oy, R * 0.9, (1, 0.7, 0.4), 1.2 * (1 - u), steps=5)
-        # saitama: a streak shooting back to earth
-        ex, ey = cam.w2s(-150, -45)
-        q = ease_in(remap(u, 0.05, 0.9), 1.5)
-        hx, hy = ox + (ex - ox) * q, oy + (ey - oy) * q
-        tx, ty = ox + (ex - ox) * max(0, q - 0.25), oy + (ey - oy) * max(0, q - 0.25)
-        sm = MaskDraw().capsule((tx, ty), (hx, hy), 0.5, 2.2).get()
-        fr.img[sm] = 1.0
-        fr.glow[sm] += np.array([1, 0.85, 0.5]) * 1.5
-        radial(fr.glow, hx, hy, 14, (1, 0.8, 0.5), 1.2, steps=4)
-
-    def draw_orbit(self, fr, s, t):
-        """Murata-style extreme long shot: the planet's cloud cover blown open."""
-        u = remap(s, self.tP + 1.45, self.tP + 2.6)
-        cam = fr.cam
-        fr.img[:] = hexc('#02030a')
-        SPACE.stars(fr, t)
-        cx, cy, R = W / 2 + cam.ox, H + 190 + cam.oy, 330.0
-        dx, dy = (XX - cx) / R, (YY - cy) / R
-        d2 = dx * dx + dy * dy
-        m = d2 < 1
-        radial(fr.glow, cx, cy, R * 1.08, hexc('#3a8aff'), 0.5, power=6, steps=6)
-        z = np.sqrt(np.clip(1 - d2, 0, 1))
-        lon = np.arctan2(dx, z)
-        lat = np.arcsin(np.clip(-dy, -1, 1))
-        land = fbm(lon * 3 + 1, lat * 5, 4, 31) > 0.53
-        col = np.where(land[..., None], hexc('#4a8a44'), hexc('#1d4fb3'))
-        hx, hy = W / 2 + cam.ox, H * 0.52 + cam.oy
-        rr = np.hypot(XX - hx, (YY - hy) / 0.42)
-        bearing = np.arctan2((YY - hy) / 0.42, XX - hx)
-        grow = ease_out(remap(u, 0.0, 0.85), 2.2)
-        Rh = 8 + 150 * grow
-        wob = 1 + 0.15 * (vnoise(np.cos(bearing) * 3 + 1, np.sin(bearing) * 3, 51) - 0.5)
-        cl = fbm(lon * 7 + t * 0.05, lat * 12, 4, 37)
-        streak = 1 + 0.45 * np.sin(bearing * 22 + rr * 0.05)
-        ring_zone = (rr > Rh * wob) & (rr < Rh * wob * 1.9)
-        cl = np.where(ring_zone, cl * streak, cl)
-        cloud = (cl > 0.4) & (rr > Rh * wob)
-        thin = (cl > 0.33) & (rr > Rh * wob) & ~cloud
-        pile = (rr > Rh * wob) & (rr < Rh * wob + 10) & (cl > 0.3)
-        col = np.where(cloud[..., None], hexc('#d6dcf0'), col)
-        col = np.where(pile[..., None], hexc('#eef0fa'), col)
-        col = np.where(thin[..., None], col * 0.5 + hexc('#e0e6ff') * 0.5, col)
-        lamb = np.clip(0.45 + 0.7 * z - 0.25 * dx, 0, 1)
-        lamb = np.floor(lamb * 6 + BAYER * 0.99) / 6
-        shade = (0.12 + 0.95 * lamb)[..., None]
-        fr.img[m] = (col * shade)[m]
-        rim = m & (d2 > 0.93)
-        fr.img[rim] = fr.img[rim] * 0.5 + hexc('#7ac0ff') * 0.5
-        # shockwave racing out across the cloud tops
-        for j, lag in enumerate((0.0, 0.18)):
-            Rs = 20 + 240 * ease_out(remap(u, lag, 1.0), 1.6)
-            ring = m & (np.abs(rr - Rs) < 2.2 - j)
-            fr.img[ring] = 1.0
-            fr.glow[ring] += np.array([1.0, 0.95, 0.85]) * (1.2 - 0.9 * u)
-        radial(fr.glow, hx, hy, 60, (1, 0.95, 0.8), 1.5 * (1 - u) + 0.3, steps=5)
-
     def draw_deck(self, fr, s, t, k):
         """Overcast cloud deck that the serious punch blows a giant hole through."""
         cam = fr.cam
@@ -1197,18 +1090,19 @@ class Film:
         fade = np.clip((hz - 70 - YY) / 60.0, 0, 1)
         d = fbm(wx / 60.0, wy / 20.0, 4, seed=13)
         dens = (d - 0.3) * 3.0 * fade
-        ang = np.arctan2(YY - sy, XX - sx)
-        wob = 1 + 0.22 * (vnoise(np.cos(ang) * 3 + 2, np.sin(ang) * 3 + 5, 21) - 0.5)
-        rr = np.hypot(XX - sx, (YY - sy) * 1.7)
-        R = (4 + 150 * k) * wob
-        dens = dens * np.clip((rr - R) / 18.0, 0, 1)
+        ca, sa = math.cos(-0.42), math.sin(-0.42)
+        rr = np.abs(-(XX - sx) * sa + (YY - sy) * ca)
+        persp = 1 + np.clip((sy - YY) / H, -0.5, 1.5) * 0.9
+        wob = 1 + 0.25 * (vnoise(XX / 9.0, YY / 9.0, 21) - 0.5)
+        R = (2 + 34 * k) * persp * wob
+        dens = dens * np.clip((rr - R) / 8.0, 0, 1)
         m1 = dens > 0.12
         m2 = dens > 0.45
         base = CHARGE['cloud'] * (1 - k) + DAWN['cloud'] * k
         hi = CHARGE['cloud_hi'] * (1 - k) + DAWN['cloud_hi'] * k
         fr.img[m1] = base
         fr.img[m2] = base * 0.6 + hi * 0.4
-        rim = m1 & (rr < R + 11)
+        rim = m1 & (rr < R + 6)
         fr.img[rim] = hi
         fr.glow[rim] += hi * 0.25 * k
         edge = m1 & ~shift(m1, 0, -1)

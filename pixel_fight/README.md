@@ -22,12 +22,12 @@ python render.py sheet 4 3 20.0 26.0   # contact sheet of a time range (real sec
 2. 11 连拳暴风格挡 → 埼玉瞬移到背后，一拳打飞，撞墙
 3. 波罗斯破墙冲回，升龙拳挑空 → 空中连段 → 双手锤砸地成坑
 4. 埼玉普通一拳：波罗斯连穿两栋大楼，镜头甩镜追随
-5. 波罗斯觉醒（气场爆发）→ 瞬移围攻五连（每一击换一个机位）→ 对拳：切超远景，冲击波把周围楼群整片震塌
+5. 波罗斯觉醒（气场爆发）→ 瞬移围攻五连（每一击换一个机位）→ 对拳：切 3D 航拍，半球冲击波扩散，楼群依次被压塌
 6. 空中高速战：格挡、两次对拳、踢飞、追击、双手锤把埼玉砸回地面
 7. 波罗斯一记上踢把埼玉踢飞：冲破云层（云层被撞出洞）→ 冲出大气层（地球弧线）→ 砸落月球
-8. 月面蓄力一跳 → 切太空远景：月球从起跳点裂开、裂缝发光扩散、碎石喷射 → 化作陨石砸回城市
+8. 月面蓄力一跳 → 切 3D 月面特写：同心冲击环沿球面扩散、放射状溅射纹、碎石飞出、埼玉拖着光轨离开 → 化作陨石砸回城市
 9. 崩星咆哮炮蓄力 → 光束吞没埼玉（剪影）→ 埼玉逆着光束冲上去
-10. 慢镜蓄力 → 认真一拳：冲击帧、冲击锥，镜头仰拍天空，满天云层被轰出巨大空洞 → 切宇宙远景（村田版构图）：整个星球的云层被轰开巨大环形空洞，冲击环沿地表扩散 → K.O.
+10. 慢镜蓄力 → 认真一拳：冲击帧、冲击锥，镜头仰拍天空，满天云层被轰出巨大空洞 → 切 3D 宇宙视角（村田版构图）：一道笔直切口沿大圆划过云层直到地平线，起点放射状爆开 → K.O.
 
 ## 打击感是怎么做的
 
@@ -45,6 +45,11 @@ python render.py sheet 4 3 20.0 26.0   # contact sheet of a time range (real sec
   focus, zoom bias and follow speed (whip pans).
 - **Sound** (`audio.py`): every hit's SFX is placed at its *real* (post-hit-stop) time over a 172 BPM chiptune loop
   that drops out for the serious-punch windup.
+
+- **3D hero shots** (`three.py`): perspective camera + per-pixel sphere ray-casting (3D value noise for land,
+  clouds, maria; crater field; features defined on the sphere and projected), projected box city with painter's
+  sort, hemispherical shockwave dome with fresnel rim, analytic 3D debris. Rendered on the native pixel grid and
+  dithered, so the manga-style 3D panels still read as pixel art.
 
 Engine pieces: `engine.py` (canvas, bloom, dithering, text), `stick.py` (stickman renderer), `fighters.py`
 (skeleton, poses, cape physics), `fx.py`, `backgrounds.py`, `shotbase.py` (smears / ghosts / glints).
